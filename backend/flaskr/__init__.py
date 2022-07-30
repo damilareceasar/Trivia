@@ -17,6 +17,7 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     setup_db(app)
+    #Cors allows * for origin
     cors  = CORS(app,resources={r'/api/*':{'origins':'*'}})
     
     
@@ -50,21 +51,22 @@ def create_app(test_config=None):
     Create an endpoint to handle GET requests
     for all available categories.
     """
+    #handles the Categories route
     @app.route("/categories")
     def handleCategory():
         category = Category.query.order_by(Category.id).all()
         my_cat = [cat.format() for cat in category]
-
+       #Determine if categories are available
         if len(my_cat) == 0:
             abort(404,"No category found")
         else:
             cating = {}
             #cat = [mycat.format() for mycat in category]
-
+            #loops through the list of categories
             for catlist in my_cat:
                 cating[catlist["id"]] = catlist["type"]
         
-        
+        #return  a jsonify object
             return jsonify({
                 "success":True,
                 "categories":cating
@@ -81,7 +83,7 @@ def create_app(test_config=None):
     ten questions per page and pagination at the bottom of the screen for three pages.
     Clicking on the page numbers should update the questions.
     """
-    
+    #Handles list of questions,categories,total questions
     @app.route("/questions")
     def handleQuestions():
           
@@ -90,21 +92,22 @@ def create_app(test_config=None):
           
           #cat =myCategory.type
          # my_page = request.args.get("page")
+         #queries database for questions
           myQuestion = Question.query.order_by(Question.id).all()
           quest = paginate(request,myQuestion)
           #myCategory = Category.query.filter(Category.type==type).one_or_none()
-          
+          #loops throught list of categories
           category = Category.query.all()
           my_cat = [cat.format() for cat in category]
           cating = {}
           
-
+          
           for catlist in my_cat:
             cating[catlist["id"]] = catlist["type"]
 
           if len(quest) == 0:
             abort(404,'questions not available')
-          else:
+          else:#else returns jsonify object
               return jsonify({
                "questions":quest,
                "total_questions":len(Question.query.all()),
@@ -119,6 +122,7 @@ def create_app(test_config=None):
     TEST: When you click the trash icon next to a question, the question will be removed.
     This removal will persist in the database and when you refresh the page.
     """
+    #Handles the deletion of questions
     @app.route("/questions/<int:question_id>",methods = ["DELETE"])
     def delete_Question(question_id):
         my_quest = Question.query.get(question_id)
@@ -126,10 +130,10 @@ def create_app(test_config=None):
         if my_quest == None:
             abort(404,"question not available")
         else:    
-            my_quest.delete()
+            my_quest.delete()#deletes intended questions if available
         
         
-
+            #return a jsonify object
             return jsonify({
                  "success":True,
                   "deleted":question_id
@@ -145,14 +149,16 @@ def create_app(test_config=None):
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
     """
+    #handles the creation of question
     @app.route('/questions',methods=["POST"])
     def create_questions():
+        #Retrieves all variable named request from the frontend
         body = request.get_json()
         my_question = body.get("question")
         my_answer = body.get("answer")
         my_category = body.get("category")
         my_difficulty = body.get("difficulty")
-
+        #inserts data into database tables
         new_question = Question(question=my_question,answer=my_answer,category=my_category,
         difficulty=my_difficulty)
         
@@ -164,6 +170,7 @@ def create_app(test_config=None):
        
              new_quest = Question.query.order_by(Question.id).all()
              added_quest = [quest.format()for quest in new_quest]
+             #returns jsonify object
              return jsonify({"success":True,
                         "new_quest":new_question.id,
                         "all_quest":added_quest})
@@ -177,17 +184,19 @@ def create_app(test_config=None):
     only question that include that string within their question.
     Try using the word "title" to start.
     """
+    #Handle search request
     @app.route('/questions/search',methods =['POST'])
     def search_term():
         body = request.get_json()
         my_search = body["searchTerm"]
         #art_search = Artist.query.filter(Artist.name.ilike(f'%{artname}%')).all()
+        #Searches through the table for the specified question
         my_question = Question.query.order_by(Question.id).filter(
             Question.question.ilike(f'%{ my_search }%')
         ).all()
         #all_question = paginate(request,my_question)
         questlist = [myquest.format() for myquest in my_question]
-
+        #Returns jsonify object
         return jsonify({
             "success":True,
             "questions":questlist
@@ -204,6 +213,7 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that
     category to be shown.
     """
+    #Gets questions based on categories
     @app.route("/categories/<int:id>/questions", methods =['GET'])
     def get_Questions(id):
         my_Question = Question.query.filter(Question.category == id).all()
@@ -214,10 +224,10 @@ def create_app(test_config=None):
             all_Question = paginate(request,my_Question)
             categories = Category.query.filter(Category.id == id).all()
             categorydict = {}
-        
+           
             for cato in categories:
                 categorydict[cato["id"]] = cato["type"]
-        
+            #Return jsonify object
             return jsonify(
             {   
                 "success":True,
@@ -239,25 +249,26 @@ def create_app(test_config=None):
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not.
     """
+    #handles quizzes request form the frontend
     @app.route('/quizzes', methods=['POST'])
-    def play_quiz():
+    def play():
         
         try:
             body = request.get_json()
 
-            current_category = body.get('quiz_category')
-            previous_question = body.get('previous_questions')
+            category = body.get('quiz_category')
+            question = body.get('previous_questions')
 
 
 
-            if current_category['type'] == 'click':
-                gotten_questions = Question.query.filter(Question.id.notin_((previous_question))).all()
+            if category['type'] == 'click':
+                all_questions = Question.query.filter(Question.id.notin_((question))).all()
 
             else: 
-                gotten_questions = Question.query.filter_by(category=current_category['id']
-                ).filter(Question.id.notin_((previous_question))).all()
+                all_questions = Question.query.filter_by(category=category['id']
+                ).filter(Question.id.notin_((question))).all()
 
-            questions = gotten_questions[random.randrange(0, len(gotten_questions))].format() if len(gotten_questions) > 0 else None
+            questions = all_questions[random.randrange(0, len(all_questions))].format() if len(all_questions) > 0 else None
 
             return jsonify({
                 "success": True,
@@ -271,6 +282,8 @@ def create_app(test_config=None):
     Create error handlers for all expected errors
     including 404 and 422.
     """
+    # Create error handlers for all expected errors
+    # including 404 and 422.
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({"error":404,"message":"resource not found"}),404

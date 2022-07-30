@@ -137,7 +137,7 @@ COPY public.questions (id, question, answer, difficulty, category) FROM stdin;
 15	The Taj Mahal is located in which Indian city?	Agra	2	3
 16	Which Dutch graphic artist–initials M C was a creator of optical illusions?	Escher	1	2
 17	La Giaconda is better known as what?	Mona Lisa	3	2
-18	How many paintings did Van Gogh sell in his lifetime?	One	4	2
+18	How many paintings did Van Gogh s jell in his lifetime?	One	4	2
 19	Which American artist was a pioneer of Abstract Expressionism, and a leading exponent of action painting?	Jackson Pollock	2	2
 20	What is the heaviest organ in the human body?	The Liver	4	1
 21	Who discovered penicillin?	Alexander Fleming	3	1

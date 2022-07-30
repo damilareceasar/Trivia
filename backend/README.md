@@ -40,7 +40,28 @@ psql trivia < trivia.psql
 
 From within the `./src` directory first ensure you are working using your created virtual environment.
 
-To run the server, execute:
+To run the server, execute:- windows powershell
+
+# How to run the server
+//Mac os
+```bash
+source FLASK_ENV=development
+source FLASK_APP=flaskr
+````
+//windows powershell
+```bash
+$env:FLASK_ENV = "development"
+$env:FLASK_APP = "flaskr"
+```
+
+// windows CMD
+
+````bash
+set FLASK_APP=flaskr
+set FLASK_ENV=development
+
+
+
 
 ```bash
 flask run --reload

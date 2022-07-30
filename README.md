@@ -47,3 +47,28 @@ Pay special attention to what data the frontend is expecting from each API respo
 By making notes ahead of time, you will practice the core skill of being able to read and understand code and will have a simple plan to follow to build out the endpoints of your backend API.
 
 > View the [Frontend README](./frontend/README.md) for more details.
+
+
+### Installing Dependecies
+
+* Installing Node
+This project runs on Node and NPM(node package manager) for the execution of the front end.Download node from [https://nodejs.com/en/download](https://nodejs.org/en/download/).
+
+* Installing Dependencies
+This project uses NPM to manage dependencies.After installing node, 
+run 'npm install' to install dependencies needed.
+
+```bash
+npm install
+```
+
+ _tip_: Make sure you're in the frontend folder before running the command
+
+> _tip_: `npm i`is shorthand for `npm install``
+
+
+Start the front end server with the command below
+
+```bash
+npm start
+```

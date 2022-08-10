@@ -52,7 +52,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data["categories"])
 
     @unittest.SkipTest #remove this decorator to run the delete test, this was included to avoided test failure
-    def test_delete_question(self):
+    def test_delete_myquestion(self):
         res = self.client().delete("/questions/30")
         data = json.loads(res.data)
 
@@ -116,14 +116,14 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(['question'])
 
-    def test_406_error_with_missing_previous_questions(self):
+    def test_missing_previous_questions(self):
         res = self.client().post('/quizzes', json={"quiz_category": "all"})
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
 
-    def test_400_error_quizzes_no_parameter(self):
+    def test_error_quizzes_with_no_parameter(self):
         res = self.client().post('/quizzes')
 
         self.assertEqual(res.status_code, 422)

@@ -260,20 +260,28 @@ def create_app(test_config=None):
             question = body.get('previous_questions')
 
 
-
-            if category['type'] == 'click':
-                all_questions = Question.query.filter(Question.id.notin_((question))).all()
+            if category is None or question is None:
+                abort(400)
+            if category['id'] == 'click':
+                    all_questions = Question.query().all()
 
             else: 
-                all_questions = Question.query.filter_by(category=category['id']
-                ).filter(Question.id.notin_((question))).all()
+                   all_questions = Question.query.filter_by(category['id']).all()
 
-            questions = all_questions[random.randrange(0, len(all_questions))].format() if len(all_questions) > 0 else None
+                   selection = Question.query.filter(
+                   Question.question.ilike(f'%{question}%')).all()
+                   random_question = random.randrange(0, len(all_questions), 1)
 
-            return jsonify({
-                "success": True,
-                "question": questions
-            })
+            while True:
+                if selection.id == random_question.id:
+                    random_question = random.randrange(0, len(all_questions), 1)
+                else:
+                    
+                  return jsonify({
+                     "success":True,
+                      "question":random_question.format()
+                   })
+                
         except:
             abort(422, "Quiz not found")
         

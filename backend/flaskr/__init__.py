@@ -18,9 +18,9 @@ def create_app(test_config=None):
     app = Flask(__name__)
     setup_db(app)
     #Cors allows * for origin
-    cors  = CORS(app,resources={r'/api/*':{'origins':'*'}})
-    
-    
+    #cors  = CORS(app,resources={r'/api/*':{'origins':'*'}})
+    #cors = CORS(app, resources={r"/api/*":{"origins": "*"}})
+    cors =  CORS(app, resources={'/': {'origins': '*'}})
     '@TODO: Set up CORS. Allow * for origins. Delete the sample route after completing the TODOs'
     
     
@@ -52,7 +52,7 @@ def create_app(test_config=None):
     for all available categories.
     """
     #handles the Categories route
-    @app.route("/categories")
+    @app.route("/categories", methods = ['GET'])
     def handleCategory():
         category = Category.query.order_by(Category.id).all()
         my_cat = [cat.format() for cat in category]
@@ -84,7 +84,7 @@ def create_app(test_config=None):
     Clicking on the page numbers should update the questions.
     """
     #Handles list of questions,categories,total questions
-    @app.route("/questions")
+    @app.route("/questions",methods = ["GET"])
     def handleQuestions():
           
           
@@ -93,6 +93,7 @@ def create_app(test_config=None):
           #cat =myCategory.type
          # my_page = request.args.get("page")
          #queries database for questions
+          page = request.args.get("page", 1, type=int)
           myQuestion = Question.query.order_by(Question.id).all()
           quest = paginate(request,myQuestion)
           #myCategory = Category.query.filter(Category.type==type).one_or_none()
@@ -105,15 +106,15 @@ def create_app(test_config=None):
           for catlist in my_cat:
             cating[catlist["id"]] = catlist["type"]
 
-          if len(quest) == 0:
+          if len(quest) <= 0:
             abort(404,'questions not available')
           else:#else returns jsonify object
               return jsonify({
                "questions":quest,
                "total_questions":len(Question.query.all()),
                "success":True,
-               "categories":cating
-            
+               "categories":cating,
+                "page":page
                            })
     """
     @TODO:
@@ -123,6 +124,7 @@ def create_app(test_config=None):
     This removal will persist in the database and when you refresh the page.
     """
     #Handles the deletion of questions
+    
     @app.route("/questions/<int:question_id>",methods = ["DELETE"])
     def delete_Question(question_id):
         my_quest = Question.query.get(question_id)
@@ -139,6 +141,16 @@ def create_app(test_config=None):
                   "deleted":question_id
 
         })
+
+
+
+    
+
+
+
+
+
+
     """
     @TODO:
     Create an endpoint to POST a new question,
@@ -150,30 +162,40 @@ def create_app(test_config=None):
     of the questions list in the "List" tab.
     """
     #handles the creation of question
+    
     @app.route('/questions',methods=["POST"])
     def create_questions():
         #Retrieves all variable named request from the frontend
         body = request.get_json()
-        my_question = body.get("question")
-        my_answer = body.get("answer")
-        my_category = body.get("category")
-        my_difficulty = body.get("difficulty")
+        question = body["question"]
+        answer = body["answer"]
+        category = body["category"]
+        difficulty = body["difficulty"]
         #inserts data into database tables
-        new_question = Question(question=my_question,answer=my_answer,category=my_category,
-        difficulty=my_difficulty)
+        print(category,answer,question,difficulty)
         
-        my_category = Question.query.get(my_category)
-        if my_category == None:
-            abort(406,"Category not found")
-        else:
-             new_question.insert()
-       
-             new_quest = Question.query.order_by(Question.id).all()
-             added_quest = [quest.format()for quest in new_quest]
+        
+        
+        try:
+            if question is None or answer is None or category is None or difficulty is None:
+                abort(404,"Entry not valid")
+            else:
+                new_question = Question(question=question,answer=answer,category=category,difficulty=difficulty)
+                new_question.insert()
+
+               # new_quest = Question.query.order_by(Question.id).all()
+               # all_quest = [quest.format()for quest in new_quest]
+                #all_quest = Question.query.all()
+                questions = Question.query.order_by(Question.id).all()
+                all_quest = [question.format() for question in questions]
              #returns jsonify object
-             return jsonify({"success":True,
-                        "new_quest":new_question.id,
-                        "all_quest":added_quest})
+                return jsonify({"success":True,
+                        "questions":len(Question.query.all()),
+                        "allquestions":all_quest
+                       })
+        except:
+            abort(422,"Unexpected Error")
+    
     """
     @TODO:
     Create a POST endpoint to get questions based on a search term.
@@ -185,6 +207,7 @@ def create_app(test_config=None):
     Try using the word "title" to start.
     """
     #Handle search request
+    
     @app.route('/questions/search',methods =['POST'])
     def search_term():
         body = request.get_json()
@@ -204,8 +227,16 @@ def create_app(test_config=None):
 
 
         
+    
+                    
 
+    
+        
+    
+    
+    
     """
+
     @TODO:
     Create a GET endpoint to get questions based on category.
 
@@ -217,22 +248,17 @@ def create_app(test_config=None):
     @app.route("/categories/<int:id>/questions", methods =['GET'])
     def get_Questions(id):
         my_Question = Question.query.filter(Question.category == id).all()
-        my_category = Category.query.get(id)
-        if my_Question or my_category == None:
-            abort(404,"question or category not available ")
-        else:
-            all_Question = paginate(request,my_Question)
-            categories = Category.query.filter(Category.id == id).all()
-            categorydict = {}
-           
-            for cato in categories:
-                categorydict[cato["id"]] = cato["type"]
-            #Return jsonify object
-            return jsonify(
+        all_category = Category.query.get(id)
+        all_question = paginate(request,my_Question)
+        if all_category is None or all_question is None:
+            abort(404)
+      
+        return jsonify(
             {   
                 "success":True,
-                "all_questions":all_Question,
-                "all_categories":categorydict
+                "questions":all_question,
+               
+                
             }
         )
 
@@ -250,46 +276,120 @@ def create_app(test_config=None):
     and shown whether they were correct or not.
     """
     #handles quizzes request form the frontend
+    ''''''
+    @app.route('/quizzes', methods=['POST'])
+    def play_quiz():
+        
+        body = request.get_json()
+        quiz_category = body.get('quiz_category')
+        prev_quest = body.get('previous_questions')
+        
+
+        if (quiz_category is None) or (prev_quest is None):
+            abort(400)
+
+        elif (quiz_category['id'] == 0):
+            questions = Question.query.filter(Question.id.notin_((prev_quest))).all()
+            
+        else:
+            questions = Question.query.filter_by(category=quiz_category['id']
+                ).filter(Question.id.notin_((prev_quest))).all()
+            #questions = Question.query.filter_by(category=quiz_category['id']).all()
+
+        def random_quest():
+            return questions[random.randrange(0, len(questions), 1)]
+            #rand=random.choice(range(1,len(questions)))
+            #random_question = questions[rand]
+            #return random_question
+        def confirm(question):
+            check = False
+            for quest in prev_quest:
+                if (quest == question.id):
+                    check = True
+
+            return check
+
+        random_question = random_quest()
+        while (confirm(random_question)):
+            random_question = random_quest()
+
+    
+        return jsonify({
+            'success': True,
+            'question': random_question.format()
+        })
+
+
+
+
+
+
+
+
+
+
+    '''
     @app.route('/quizzes', methods=['POST'])
     def play():
         
-        try:
+        
             body = request.get_json()
 
-            category = body.get('quiz_category')
-            question = body.get('previous_questions')
+            category = body['quiz_category']
+            question = body['previous_questions']
+            
 
-
-            if category is None or question is None:
+            if ((category is None) or (question is None)):
                 abort(400)
-            if category['id'] == 'click':
-                    all_questions = Question.query().all()
+            if category['id'] == 0:
+            
+                 all_questions = Question.query.all()  
+                 quest = [myquest.format() for myquest in all_questions]
+                 rand=random.choice(range(1,len(quest)))
+                 random_question = quest[rand]
+                 return {
+                    "success":True,
+                    "question":random_question
+                 }
+                    
+                 
+                 
 
             else: 
-                   all_questions = Question.query.filter_by(category['id']).all()
+                   all_questions = Question.query.filter_by(category=category['id']).all()
 
-                   selection = Question.query.filter(
-                   Question.question.ilike(f'%{question}%')).all()
-                   random_question = random.randrange(0, len(all_questions), 1)
+                   rand=random.choice(range(1,len(all_questions)))
+                   random_question = all_questions[rand]
 
+           
+            
+
+            def confirm(rand_quest):
+                used = False
+                for q in question:
+                  if (q == question.id):
+                        used = True
+
+                return used
+            
+
+            
             while True:
-                if selection.id == random_question.id:
-                    random_question = random.randrange(0, len(all_questions), 1)
-                else:
-                    
-                  return jsonify({
-                     "success":True,
-                      "question":random_question.format()
-                   })
+                 if confirm(random_question == True):
+                   rand=random.choice(range(1,len(all_questions)))
+                   random_question = all_questions[rand]
+                 else:
+                    break   
                 
-        except:
-            abort(422, "Quiz not found")
-        
-    """
-    @TODO:
-    Create error handlers for all expected errors
-    including 404 and 422.
-    """
+            return jsonify({
+                        "success":True,
+                         "question":random_question.format()     
+                        })
+        '''             
+                   
+    
+              
+
     # Create error handlers for all expected errors
     # including 404 and 422.
     @app.errorhandler(404)
@@ -313,4 +413,3 @@ def create_app(test_config=None):
 
     return app
 
-   

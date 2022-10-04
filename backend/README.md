@@ -1,3 +1,92 @@
+# About the project
+# This is a quiz project that enables the following
+    1. questions can be posted on the website
+    2. A game of quizz can be played on the site
+    3. questions can be searched and deleted on the site
+
+# Getting Started
+    Developer should have  python, flask and node installed on your computer
+# running the backend server
+    Developer should already have flask install on your system. To start the server, cd into the backend directory
+    and run the following commands depending on the environment you are using.
+    
+    - windows CMD
+
+    ````bash
+    set FLASK_APP=flaskr
+    set FLASK_ENV=development
+    flask run
+
+
+
+
+
+     windows powershell
+
+     ```bash
+     $env:FLASK_ENV = "development"
+     $env:FLASK_APP = "flaskr"
+     flask run
+
+     ```
+   +mac os
+   ```bash
+    source FLASK_ENV=development
+    source FLASK_APP=flaskr
+````
+# running the frontend server
+  To run the frontend server, you need to have node installed on your computer. 
+  # installing dependencies
+  run 'npm install' , this will install all dependencies needed to run the frontend server
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Backend - Trivia API
 
 ## Setting up the Backend
